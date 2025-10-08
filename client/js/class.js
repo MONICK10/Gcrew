@@ -1,4 +1,6 @@
 // class.js
+import { API_BASE_URL } from './config.js';
+
 const STRESS_KEYWORDS = {
     // High stress
     'overwhelmed': 30, 'anxious': 30, 'hopeless': 40, 'failed': 35, 'can\'t': 25,
@@ -44,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------- FETCH DISCUSSIONS ----------------
     async function fetchDiscussions() {
         try {
-            const res = await fetch(`http://localhost:5006/discussions?batch=${currentUser.batch}&department=${currentUser.department}`);
+            const res = await fetch(`${API_BASE_URL}/discussions?batch=${currentUser.batch}&department=${currentUser.department}`);
             const discussions = await res.json();
 
             feed.innerHTML = discussions.length === 0

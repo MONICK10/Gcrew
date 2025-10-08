@@ -1,4 +1,6 @@
 // js/department.js
+import { API_BASE_URL } from './config.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
@@ -24,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------- FETCH DEPARTMENT POSTS ----------------
   async function fetchDepartmentPosts() {
     try {
-      const res = await fetch(`http://localhost:5006/discussions?department=${department}`);
+      const res = await fetch(`${API_BASE_URL}/discussions?department=${department}`);
       const posts = await res.json();
 
       feed.innerHTML = posts.length === 0

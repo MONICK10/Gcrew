@@ -1,5 +1,6 @@
+import { API_BASE_URL } from './config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE_URL = 'http://localhost:5006';
 
   // ---------------- REGISTER ----------------
   const registerForm = document.getElementById('register-form');

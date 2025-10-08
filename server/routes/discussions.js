@@ -2,7 +2,8 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { pool } from "../db.js";
+import { db } from "../db.js";
+import { collection, doc, getDocs, addDoc, getDoc, query, where, orderBy } from "firebase/firestore";
 
 const router = express.Router();
 
@@ -23,17 +24,17 @@ router.post("/", upload.single("file"), async (req, res) => {
   }
 
   try {
-    const sql = `INSERT INTO discussions (user_id, batch, department, content, file_path, is_public)
-                 VALUES (?, ?, ?, ?, ?, ?)`;
-    const [result] = await pool.query(sql, [
+    const discussionsRef = collection(db, "discussions");
+    const docRef = await addDoc(discussionsRef, {
       user_id,
-      batch || null,
-      department || null,
+      batch: batch || null,
+      department: department || null,
       content,
       file_path,
-      is_public === "true" || is_public === true ? 1 : 0
-    ]);
-    res.json({ success: true, id: result.insertId });
+      is_public: is_public === "true" || is_public === true,
+      created_at: new Date()
+    });
+    res.json({ success: true, id: docRef.id });
   } catch(err) {
     console.error("POST /discussions error:", err);
     res.status(500).json({ success: false, message: "Server error" });
@@ -49,11 +50,27 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const sql = `SELECT d.*, u.name FROM discussions d
-                 JOIN users u ON d.user_id = u.id
-                 WHERE d.batch = ? AND d.department = ?
-                 ORDER BY d.created_at DESC`;
-    const [rows] = await pool.query(sql, [batch, department]);
+    const discussionsRef = collection(db, "discussions");
+    const q = query(
+      discussionsRef,
+      where("batch", "==", batch),
+      where("department", "==", department),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    
+    const rows = await Promise.all(
+      querySnapshot.docs.map(async (discussionDoc) => {
+        const discussionData = discussionDoc.data();
+        const userDoc = await getDoc(doc(db, "users", discussionData.user_id));
+        return {
+          id: discussionDoc.id,
+          ...discussionData,
+          name: userDoc.data().name
+        };
+      })
+    );
+    
     res.json(rows);
   } catch(err) {
     console.error("GET /discussions error:", err);
@@ -66,11 +83,26 @@ router.get("/department/:dept", async (req, res) => {
   const department = req.params.dept;
 
   try {
-    const sql = `SELECT d.*, u.name FROM discussions d
-                 JOIN users u ON d.user_id = u.id
-                 WHERE d.department = ?
-                 ORDER BY d.created_at DESC`;
-    const [rows] = await pool.query(sql, [department]);
+    const discussionsRef = collection(db, "discussions");
+    const q = query(
+      discussionsRef,
+      where("department", "==", department),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    
+    const rows = await Promise.all(
+      querySnapshot.docs.map(async (discussionDoc) => {
+        const discussionData = discussionDoc.data();
+        const userDoc = await getDoc(doc(db, "users", discussionData.user_id));
+        return {
+          id: discussionDoc.id,
+          ...discussionData,
+          name: userDoc.data().name
+        };
+      })
+    );
+    
     res.json(rows);
   } catch(err) {
     console.error("GET /department/:dept error:", err);
@@ -88,10 +120,17 @@ router.post("/department", upload.single("file"), async (req, res) => {
   }
 
   try {
-    const sql = `INSERT INTO discussions (user_id, batch, department, content, file_path, is_public)
-                 VALUES (?, NULL, ?, ?, ?, 0)`; // batch = NULL for department-level
-    const [result] = await pool.query(sql, [user_id, department, content, file_path]);
-    res.json({ success: true, id: result.insertId });
+    const discussionsRef = collection(db, "discussions");
+    const docRef = await addDoc(discussionsRef, {
+      user_id,
+      batch: null, // batch = null for department-level
+      department,
+      content,
+      file_path,
+      is_public: false,
+      created_at: new Date()
+    });
+    res.json({ success: true, id: docRef.id });
   } catch(err) {
     console.error("POST /department error:", err);
     res.status(500).json({ success: false, message: "Server error" });

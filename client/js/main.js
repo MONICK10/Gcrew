@@ -1,4 +1,6 @@
 // js/index.js
+import { API_BASE_URL } from './config.js';
+
 document.addEventListener("DOMContentLoaded", () => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     if (!currentUser) {
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------- FETCH PUBLIC DISCUSSIONS ----------------
     async function fetchPublicDiscussions() {
         try {
-            const res = await fetch("http://localhost:5006/discussions/public/all");
+            const res = await fetch(`${API_BASE_URL}/discussions/public/all`);
             const posts = await res.json();
             renderPosts(posts);
         } catch (err) {
@@ -47,9 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (post.file_path) {
                 const ext = post.file_path.split(".").pop().toLowerCase();
                 if (["mp4", "webm", "ogg"].includes(ext)) {
-                    mediaHTML = `<video src="http://localhost:5006/uploads/${post.file_path}" controls class="w-full mt-2 rounded"></video>`;
+                    mediaHTML = `<video src="${API_BASE_URL}/uploads/${post.file_path}" controls class="w-full mt-2 rounded"></video>`;
                 } else {
-                    mediaHTML = `<img src="http://localhost:5006/uploads/${post.file_path}" class="w-full mt-2 rounded"/>`;
+                    mediaHTML = `<img src="${API_BASE_URL}/uploads/${post.file_path}" class="w-full mt-2 rounded"/>`;
                 }
             }
 
@@ -89,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener("click", async () => {
                 const postId = btn.dataset.id;
                 try {
-                    await fetch(`http://localhost:5006/discussions/${postId}/like`, {
+                    await fetch(`${API_BASE_URL}/discussions/${postId}/like`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ user_id: currentUser.id })
@@ -126,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (file) formData.append("file", file);
 
                 try {
-                    await fetch(`http://localhost:5006/discussions/${postId}/reply`, {
+                    await fetch(`${API_BASE_URL}/discussions/${postId}/reply`, {
                         method: "POST",
                         body: formData
                     });
@@ -143,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------- FETCH LIKES ----------------
     async function fetchLikes(postId) {
         try {
-            const res = await fetch(`http://localhost:5006/discussions/${postId}/likes`);
+            const res = await fetch(`${API_BASE_URL}/discussions/${postId}/likes`);
             const data = await res.json();
             const btn = document.querySelector(`.like-btn[data-id="${postId}"]`);
             if (btn) btn.querySelector(".like-count").textContent = data.total || 0;
@@ -155,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------- FETCH REPLIES ----------------
     async function fetchReplies(postId) {
         try {
-            const res = await fetch(`http://localhost:5006/discussions/${postId}/replies`);
+            const res = await fetch(`${API_BASE_URL}/discussions/${postId}/replies`);
             const replies = await res.json();
             const section = document.getElementById(`reply-section-${postId}`);
             const repliesList = section.querySelector(".replies-list");
@@ -166,9 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (r.file_path) {
                     const ext = r.file_path.split(".").pop().toLowerCase();
                     if (["mp4", "webm", "ogg"].includes(ext)) {
-                        mediaHTML = `<video src="http://localhost:5006/uploads/${r.file_path}" controls class="w-full mt-1 rounded"></video>`;
+                        mediaHTML = `<video src="${API_BASE_URL}/uploads/${r.file_path}" controls class="w-full mt-1 rounded"></video>`;
                     } else {
-                        mediaHTML = `<img src="http://localhost:5006/uploads/${r.file_path}" class="w-full mt-1 rounded"/>`;
+                        mediaHTML = `<img src="${API_BASE_URL}/uploads/${r.file_path}" class="w-full mt-1 rounded"/>`;
                     }
                 }
 
@@ -195,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (file) formData.append("file", file);
 
         try {
-            await fetch("http://localhost:5006/discussions", {
+            await fetch(`${API_BASE_URL}/discussions`, {
                 method: "POST",
                 body: formData
             });
