@@ -23,8 +23,27 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.use(express.static('public')); 
-app.use(cors({ origin: ["http://localhost:5500", "http://127.0.0.1:5500"] }));
+app.use(cors({ 
+    origin: [
+        "http://localhost:5500", 
+        "http://127.0.0.1:5500",
+        "http://localhost:8000", 
+        "http://127.0.0.1:8000"
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Test endpoint for debugging
+app.get('/test', (req, res) => {
+    res.json({ 
+        message: 'Backend is working!', 
+        timestamp: new Date().toISOString(),
+        cors: 'enabled'
+    });
+});
 
 // Routes
 app.use("/auth", authRoutes);
