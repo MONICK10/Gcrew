@@ -1,94 +1,56 @@
-import { API_BASE_URL } from './config.js';
+// ---------------- LOGIN ----------------
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-document.addEventListener('DOMContentLoaded', () => {
+    const email = loginForm.email.value.trim();
+    const password = loginForm.password.value.trim();
+    const msg = document.getElementById('login-msg');
+    msg.textContent = "";
 
-  // ---------------- REGISTER ----------------
-  const registerForm = document.getElementById('register-form');
-  if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    if (!email || !password) {
+      msg.textContent = "⚠️ Please fill all fields.";
+      msg.style.color = "red";
+      return;
+    }
 
-      const name = registerForm.name.value.trim();
-      const email = registerForm.email.value.trim();
-      const password = registerForm.password.value.trim();
-      const department = registerForm.department.value;
-      const batch = registerForm.batch.value;
-      const msg = document.getElementById('reg-msg');
-      msg.textContent = "";
+    // 🧠 Dummy login check (for offline testing)
+    if (email === "user123" && password === "pass123") {
+      msg.textContent = "✅ Logged in with dummy account!";
+      msg.style.color = "green";
 
-      if (!name || !email || !password || !department || !batch) {
-        msg.textContent = "⚠️ Please fill all fields.";
+      // store dummy user
+      const dummyUser = { name: "Demo User", email: "user123", role: "tester" };
+      localStorage.setItem("currentUser", JSON.stringify(dummyUser));
+
+      // redirect
+      window.location.href = "index.html";
+      return;
+    }
+
+    // 🌐 Actual backend login
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        msg.textContent = "✅ Login successful!";
+        msg.style.color = "green";
+
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        window.location.href = "index.html";
+      } else {
+        msg.textContent = data.message || "Login failed.";
         msg.style.color = "red";
-        return;
       }
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, department, batch })
-        });
-
-        const data = await res.json();
-
-        if (res.ok || res.status === 201) {
-          msg.textContent = "✅ Registration successful!";
-          msg.style.color = "green";
-          registerForm.reset();
-        } else {
-          msg.textContent = data.message || "Registration failed.";
-          msg.style.color = "red";
-        }
-      } catch (err) {
-        msg.textContent = "🚨 Server error. Is backend running?";
-        msg.style.color = "red";
-      }
-    });
-  }
-
-  // ---------------- LOGIN ----------------
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const email = loginForm.email.value.trim();
-      const password = loginForm.password.value.trim();
-      const msg = document.getElementById('login-msg');
-      msg.textContent = "";
-
-      if (!email || !password) {
-        msg.textContent = "⚠️ Please fill all fields.";
-        msg.style.color = "red";
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await res.json();
-if (res.ok) {
-  msg.textContent = "✅ Login successful!";
-  msg.style.color = "green";
-
-  // store user in localStorage to persist session
-  localStorage.setItem("currentUser", JSON.stringify(data.user));
-
-  // redirect to index/dashboard
-  window.location.href = "index.html";
-} else {
-  msg.textContent = data.message || "Login failed.";
-  msg.style.color = "red";
+    } catch (err) {
+      msg.textContent = "🚨 Server error. Is backend running?";
+      msg.style.color = "red";
+    }
+  });
 }
-
-      } catch (err) {
-        msg.textContent = "🚨 Server error. Is backend running?";
-        msg.style.color = "red";
-      }
-    });
-  }
-});
