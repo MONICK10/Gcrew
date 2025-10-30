@@ -16,7 +16,7 @@ if (loginForm) {
     }
 
     // 🧠 Dummy login check (for offline testing)
-    if (email === "user123" && password === "pass123") {
+    if (email === "user123@karunya.edu.in" && password === "pass123") {
       msg.textContent = "✅ Logged in with dummy account!";
       msg.style.color = "green";
 
@@ -54,3 +54,4 @@ if (loginForm) {
     }
   });
 }
+
